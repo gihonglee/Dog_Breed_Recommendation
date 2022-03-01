@@ -118,9 +118,9 @@ def main():
         whole_data.append(extract(name_array[i]))
         if i %10 == 0:
             df = pd.DataFrame(whole_data)
-            df.to_csv("dog_data.csv")
+            df.to_csv("dog_data2.csv")
     df = pd.DataFrame(whole_data)
-    df.to_csv("dog_data.csv")
+    df.to_csv("dog_data2.csv")
     print("done")
 
 
