@@ -19,5 +19,5 @@ def name_extract(page):
         name_list.append(div.text.replace(" ","-")) # for the website we need to have '-' on url
 
 def main():
-    for i in range(1,24):
+    for i in range(1,25):
         name_extract(i)
