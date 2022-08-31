@@ -21,3 +21,8 @@ def name_extract(page):
 def main():
     for i in range(1,25):
         name_extract(i)
+    return name_list
+
+if __name__ == "__main__":
+    name_list = main()
+    print(name_list)
