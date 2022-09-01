@@ -1,16 +1,15 @@
 import requests
-from dog_name import *
 from bs4 import BeautifulSoup
 from selenium.webdriver import Chrome
 import pandas as pd
 import numpy as np
 import time
-   
+
 
 def extract(dog_name):
     url = f'https://www.akc.org/dog-breeds/{dog_name}/'
    
-    driver = Chrome(executable_path= '/Applications/chromedriver')
+    driver = Chrome(executable_path= '/Users/glee2/Downloads/chromedriver')
     driver.get(url)
     # soup = BeautifulSoup(driver.page_source, 'lxml')
     soup = BeautifulSoup(driver.page_source, 'html.parser')
@@ -108,19 +107,17 @@ def extract(dog_name):
     return job_result
     
 def main():
-    name_array[81] = 'cirneco-delletna'
-    name_array[124] = 'Grand-Basset-Griffon-Vendeen'
-    name_array[164] = 'Lowchen'
-    name_array[193] = 'Petit-Basset-Griffon-Vendeen'
+    dog_name = pd.read_csv('dog_name.csv', header= None)
+    dog_name_list = [name[0] for name in dog_name.values]
     whole_data = []
-    for i in range(len(name_array)):
-        print(f"{i}th dog {name_array[i]}")
-        whole_data.append(extract(name_array[i]))
-        if i %10 == 0:
-            df = pd.DataFrame(whole_data)
-            df.to_csv("dog_data2.csv")
+    for i in range(len(dog_name_list)):
+        print(f"{i}th dog {dog_name_list[i]}")
+        whole_data.append(extract(dog_name_list[i]))
+        # if i %10 == 0:
+        #     df = pd.DataFrame(whole_data)
+        #     df.to_csv("dog_data2.csv")
     df = pd.DataFrame(whole_data)
-    df.to_csv("dog_data2.csv")
+    df.to_csv("dog_data3.csv")
     print("done")
 
 
