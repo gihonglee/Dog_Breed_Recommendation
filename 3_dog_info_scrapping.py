@@ -5,40 +5,41 @@ import pandas as pd
 import numpy as np
 import time
 
+def height_weight_life(soup):
+
+    h_w_life = soup.find_all(class_ = 'f-16 my0 lh-solid breed-page__hero__overview__subtitle')
+    
+    # There is a case when no height, weight or life on the description
+    height = np.nan
+    weight = np.nan
+    life = np.nan
+
+    for i in h_w_life: # choose the first text, there will be multiple
+        if "inches" in i.text and height is np.nan:
+            height = i.text
+        elif "pounds" in i.text and weight is np.nan:
+            weight = i.text
+        elif "years" in i.text and life is np.nan:
+            life = i.text
+    
+    return height, weight, life
+
 
 def extract(dog_name):
+    # instatiate dog info dictionary
+    dog_info_dict = {'dog' : dog_name}
+
     url = f'https://www.akc.org/dog-breeds/{dog_name}/'
-   
     driver = Chrome(executable_path= '/Users/glee2/Downloads/chromedriver')
     driver.get(url)
-    # soup = BeautifulSoup(driver.page_source, 'lxml')
+    
     soup = BeautifulSoup(driver.page_source, 'html.parser')
-    h_w_life = soup.find_all(class_ = 'f-16 my0 lh-solid breed-page__hero__overview__subtitle')
-    h = np.nan
-    w = np.nan
-    life = np.nan
-    # Height, Weight, life
-    h_list = []
-    w_list = []
-    life_list = []
-    for i in h_w_life:
-        if "inches" in i.text:
-            h_list.append(i.text)
-        elif "pounds" in i.text:
-            w_list.append(i.text)
-        elif "years" in i.text:
-            life_list.append(i.text)
-    if len(h_list) > 0:
-        h = h_list[0]
-    if len(w_list) > 0:
-        w = w_list[0]
-    if len(life_list) >0:
-        life = life_list[0]
-
-    job_result = {
+    height, weight, life = height_weight_life(soup) 
+    
+    dog_info_dict = {
     'dog' : dog_name,
-    'height': h,
-    'weight': w,
+    'height': height,
+    'weight': weight,
     'life_expectancy': life}
 
     # all traits
@@ -54,17 +55,17 @@ def extract(dog_name):
                     result = property.text
                 else:
                     result = result + "-" + property.text
-            job_result[trait_name.text] = result     
+            dog_info_dict[trait_name.text] = result     
         else:    
-            job_result[trait_name.text] = score
+            dog_info_dict[trait_name.text] = score
 
     # Popularity, there are cases when no pop exists
 
     try:
         popularity_rank = soup.find('span',class_ =  "breed-page__popularity__custom-label")
-        job_result["popularity_rank"] = popularity_rank.text
+        dog_info_dict["popularity_rank"] = popularity_rank.text
     except:
-        job_result["popularity_rank"] = np.nan
+        dog_info_dict["popularity_rank"] = np.nan
 
     # color info
     colors_table = soup.find(class_ =  "breed-standard__table")
@@ -75,7 +76,7 @@ def extract(dog_name):
             color_result = color.find('td').text
         else:
             color_result = color_result + "-" + color.find('td').text
-    job_result["color"] = color_result
+    dog_info_dict["color"] = color_result
 
     # marking, no marking exist
     marking_result = ""
@@ -88,23 +89,23 @@ def extract(dog_name):
                 marking_result = marking.find('td').text
             else:
                 marking_result = marking_result + "-" + marking.find('td').text
-        job_result["marking"] = marking_result
+        dog_info_dict["marking"] = marking_result
     except:
-        job_result["marking"] = np.nan
+        dog_info_dict["marking"] = np.nan
 
     # breed info
     breed_info = soup.find(class_ =  "breed-page__about__read-more__text")
-    job_result["breed_info"] = breed_info.text
+    dog_info_dict["breed_info"] = breed_info.text
 
     # health, grooming, excercise, training, nutrition
     last_info = soup.find_all(class_ = "breed-table__accordion-padding__p")
-    job_result["health"] = last_info[0].text
-    job_result["grooming"] = last_info[1].text
-    job_result["excercise"] = last_info[2].text
-    job_result["training"] = last_info[3].text
-    job_result["nutrition"] = last_info[4].text
+    dog_info_dict["health"] = last_info[0].text
+    dog_info_dict["grooming"] = last_info[1].text
+    dog_info_dict["excercise"] = last_info[2].text
+    dog_info_dict["training"] = last_info[3].text
+    dog_info_dict["nutrition"] = last_info[4].text
     driver.quit()
-    return job_result
+    return dog_info_dict
     
 def main():
     dog_name = pd.read_csv('dog_name.csv', header= None)
