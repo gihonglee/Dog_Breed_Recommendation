@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import time
 
-def height_weight_life(soup):
+def add_height_weight_life(soup,dog_info_dict):
 
     h_w_life = soup.find_all(class_ = 'f-16 my0 lh-solid breed-page__hero__overview__subtitle')
     
@@ -22,31 +22,18 @@ def height_weight_life(soup):
         elif "years" in i.text and life is np.nan:
             life = i.text
     
-    return height, weight, life
-
-
-def extract(dog_name):
-    # instatiate dog info dictionary
-    dog_info_dict = {'dog' : dog_name}
-
-    url = f'https://www.akc.org/dog-breeds/{dog_name}/'
-    driver = Chrome(executable_path= '/Users/glee2/Downloads/chromedriver')
-    driver.get(url)
+    dog_info_dict['height'] = height
+    dog_info_dict['weight'] = weight
+    dog_info_dict['life'] = life
     
-    soup = BeautifulSoup(driver.page_source, 'html.parser')
-    height, weight, life = height_weight_life(soup) 
-    
-    dog_info_dict = {
-    'dog' : dog_name,
-    'height': height,
-    'weight': weight,
-    'life_expectancy': life}
+    return dog_info_dict
 
-    # all traits
+def add_traits(soup,dog_info_dict):
     traits = soup.find_all(class_ = "breed-trait-group__trait-all")
     for trait in traits:
         trait_name = trait.find(class_ = "breed-trait-group__header breed-trait-group__header-closed")
         score = str(trait).count("filled")
+        
         if trait_name.text == 'Coat Type' or trait_name.text == 'Coat Length':
             properties = trait.find_all(class_= "breed-trait-score__choice--selected")
             result = ""
@@ -59,14 +46,16 @@ def extract(dog_name):
         else:    
             dog_info_dict[trait_name.text] = score
 
-    # Popularity, there are cases when no pop exists
-
+def add_popular_rank(soup,dog_info_dict):
     try:
         popularity_rank = soup.find('span',class_ =  "breed-page__popularity__custom-label")
         dog_info_dict["popularity_rank"] = popularity_rank.text
     except:
         dog_info_dict["popularity_rank"] = np.nan
 
+    return dog_info_dict
+
+def add_color(soup,dog_info_dict):
     # color info
     colors_table = soup.find(class_ =  "breed-standard__table")
     colors = colors_table.find_all(class_ = "accordion-toggle")
@@ -77,7 +66,9 @@ def extract(dog_name):
         else:
             color_result = color_result + "-" + color.find('td').text
     dog_info_dict["color"] = color_result
+    return dog_info_dict
 
+def add_mark(soup,dog_info_dict):
     # marking, no marking exist
     marking_result = ""
     marking_table = soup.find(id =  "markings-t-h").find('tbody')
@@ -92,6 +83,24 @@ def extract(dog_name):
         dog_info_dict["marking"] = marking_result
     except:
         dog_info_dict["marking"] = np.nan
+    return dog_info_dict
+
+
+def extract(dog_name):
+    # instatiate dog info dictionary
+    dog_info_dict = {'dog' : dog_name}
+
+    url = f'https://www.akc.org/dog-breeds/{dog_name}/'
+    driver = Chrome(executable_path= '/Users/glee2/Downloads/chromedriver')
+    driver.get(url)
+    
+    soup = BeautifulSoup(driver.page_source, 'html.parser')
+    dog_info_dict = add_height_weight_life(soup,dog_info_dict)
+    dog_info_dict = add_traits(soup,dog_info_dict)
+    dog_info_dict = add_popular_rank(soup,dog_info_dict)
+    dog_info_dict = add_color(soup,dog_info_dict)
+    dog_info_dict = add_mark(soup,dog_info_dict)
+
 
     # breed info
     breed_info = soup.find(class_ =  "breed-page__about__read-more__text")
