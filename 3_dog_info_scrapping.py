@@ -10,16 +10,16 @@ def add_height_weight_life(soup,dog_info_dict):
     h_w_life = soup.find_all(class_ = 'f-16 my0 lh-solid breed-page__hero__overview__subtitle')
     
     # There is a case when no height, weight or life on the description
-    height = np.nan
-    weight = np.nan
-    life = np.nan
+    height = ""
+    weight = ""
+    life = ""
 
     for i in h_w_life: # choose the first text, there will be multiple
-        if "inches" in i.text and height is np.nan:
-            height = i.text
-        elif "pounds" in i.text and weight is np.nan:
-            weight = i.text
-        elif "years" in i.text and life is np.nan:
+        if "inches" in i.text:
+            height = height + "~" + i.text
+        elif "pounds" in i.text:
+            weight = weight + "~" + i.text
+        elif "years" in i.text:
             life = i.text
     
     dog_info_dict['height'] = height
@@ -45,6 +45,7 @@ def add_traits(soup,dog_info_dict):
             dog_info_dict[trait_name.text] = result     
         else:    
             dog_info_dict[trait_name.text] = score
+    return dog_info_dict
 
 def add_popular_rank(soup,dog_info_dict):
     try:
@@ -85,27 +86,15 @@ def add_mark(soup,dog_info_dict):
         dog_info_dict["marking"] = np.nan
     return dog_info_dict
 
-
-def extract(dog_name):
-    # instatiate dog info dictionary
-    dog_info_dict = {'dog' : dog_name}
-
-    url = f'https://www.akc.org/dog-breeds/{dog_name}/'
-    driver = Chrome(executable_path= '/Users/glee2/Downloads/chromedriver')
-    driver.get(url)
-    
-    soup = BeautifulSoup(driver.page_source, 'html.parser')
-    dog_info_dict = add_height_weight_life(soup,dog_info_dict)
-    dog_info_dict = add_traits(soup,dog_info_dict)
-    dog_info_dict = add_popular_rank(soup,dog_info_dict)
-    dog_info_dict = add_color(soup,dog_info_dict)
-    dog_info_dict = add_mark(soup,dog_info_dict)
-
+def add_breed_info(soup, dog_info_dict):
 
     # breed info
     breed_info = soup.find(class_ =  "breed-page__about__read-more__text")
     dog_info_dict["breed_info"] = breed_info.text
 
+    return dog_info_dict
+
+def add_last_info(soup,dog_info_dict):
     # health, grooming, excercise, training, nutrition
     last_info = soup.find_all(class_ = "breed-table__accordion-padding__p")
     dog_info_dict["health"] = last_info[0].text
@@ -113,21 +102,44 @@ def extract(dog_name):
     dog_info_dict["excercise"] = last_info[2].text
     dog_info_dict["training"] = last_info[3].text
     dog_info_dict["nutrition"] = last_info[4].text
-    driver.quit()
+    return dog_info_dict
+
+
+def extract(dog_name,driver):
+    # instatiate dog info dictionary
+    dog_info_dict = {'dog' : dog_name}
+
+    url = f'https://www.akc.org/dog-breeds/{dog_name}/'
+    # driver = Chrome(executable_path= '/Users/glee2/Downloads/chromedriver')
+    driver.get(url)
+    
+    soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+    # add info to dog_info_dict
+    dog_info_dict = add_height_weight_life(soup,dog_info_dict)
+    dog_info_dict = add_traits(soup,dog_info_dict)
+    dog_info_dict = add_popular_rank(soup,dog_info_dict)
+    dog_info_dict = add_color(soup,dog_info_dict)
+    dog_info_dict = add_mark(soup,dog_info_dict)
+    dog_info_dict = add_last_info(soup,dog_info_dict) # health, grooming, excercise, training, nutrition
+
+    # driver.quit()
     return dog_info_dict
     
 def main():
-    dog_name = pd.read_csv('dog_name.csv', header= None)
-    dog_name_list = [name[0] for name in dog_name.values]
-    whole_data = []
+    dog_name_series = pd.read_csv('dog_name.csv', header= None)
+    dog_name_list = [name[0] for name in dog_name_series.values]
+    dog_data_dict = []
+
+    driver = Chrome(executable_path= '/Users/glee2/Downloads/chromedriver')
+
     for i in range(len(dog_name_list)):
         print(f"{i}th dog {dog_name_list[i]}")
-        whole_data.append(extract(dog_name_list[i]))
-        # if i %10 == 0:
-        #     df = pd.DataFrame(whole_data)
-        #     df.to_csv("dog_data2.csv")
-    df = pd.DataFrame(whole_data)
-    df.to_csv("dog_data3.csv")
+        dog_data_dict.append(extract(dog_name_list[i],driver))
+
+    driver.quit()
+    dog_data_df = pd.DataFrame(dog_data_dict)
+    dog_data_df.to_csv("dog_data_09032022.csv")
     print("done")
 
 

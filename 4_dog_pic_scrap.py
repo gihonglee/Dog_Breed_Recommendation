@@ -10,13 +10,8 @@ headers_list = [{"User-Agent": 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) 
  {"User-Agent" : 'Mozilla/5.0 (X11; CrOS x86_64 8172.45.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.64 Safari/537.36'}]
 name_list = []
 
-
-
-
-
-
 def name_extract(page):
-    # page 1 ~ 23
+    # page 1 ~ 24
     url = f'https://www.akc.org/dog-breeds/page/{page}/'
     r = requests.get(url, headers= headers_list[(page)%6])
     soup = BeautifulSoup(r.content, 'html.parser')
@@ -28,7 +23,6 @@ def name_extract(page):
         with open('img/' + str(basename(div['data-title']).replace(' ','-') + '.jpg'), "wb") as f: #div.img['data-src']
             f.write(requests.get(div.img['data-src']).content)
     
-
 def main():
     for i in range(1,24): #1,24
         name_extract(i)
