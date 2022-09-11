@@ -15,16 +15,13 @@ def name_extract(page):
     url = f'https://www.akc.org/dog-breeds/page/{page}/'
     r = requests.get(url, headers= headers_list[(page)%6])
     soup = BeautifulSoup(r.content, 'html.parser')
-    # divs = soup.find_all(class_ = "breed-type-card__title mt0 mb0 f-25 py3 px3")
-    # for div in divs:
-    #     name_list.append(div.text.replace(" ","-")) # for the website we need to have '-' on url
     divs = soup.find_all(class_ = "breed-type-card mla mra bpm-mx2 contents-filter")
     for div in divs:
         with open('img/' + str(basename(div['data-title']).replace(' ','-') + '.jpg'), "wb") as f: #div.img['data-src']
             f.write(requests.get(div.img['data-src']).content)
     
 def main():
-    for i in range(1,24): #1,24
+    for i in range(1,25): #1,24
         name_extract(i)
 
 if __name__ == "__main__":
