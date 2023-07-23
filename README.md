@@ -15,4 +15,6 @@ Click "Show my {dog_name}" button
 
 Step 3:
 Here are the top 5 dogs that you will love based on your answers!
+
+
 <img width="266" alt="image" src="https://github.com/gihonglee/Dog_Breed_Recommendation/assets/84887369/5d84e325-2c5c-47d8-a4e0-bba7d339bf68">
